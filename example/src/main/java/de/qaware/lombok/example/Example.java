@@ -20,7 +20,7 @@ public class Example {
         log.info("Done");
     }
 
-    @Hello
+    @Hello(recipient = "QAware")
     private void helloWorld() {
         // empty
     }

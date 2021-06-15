@@ -28,15 +28,17 @@ public class HelloWorldAnnotationHandler extends JavacAnnotationHandler<Hello> {
      */
     @Override
     public void handle(
-        final AnnotationValues<Hello> annotation,
-        final JCAnnotation ast,
-        final JavacNode annotationNode
+        AnnotationValues<Hello> annotation,
+        JCAnnotation ast,
+        JavacNode annotationNode
     ) {
         // Get the annotated node, which should be either a method or a type (class)
         JavacNode annotatedNode = annotationNode.up();
 
+        String recipient = annotation.getInstance().recipient();
+
         if (annotatedNode.getKind() == Kind.METHOD) {
-            handleMethod(ast, annotatedNode);
+            injectHello(ast, annotatedNode, recipient);
         } else {
             annotationNode.addError("@Hello is legal only on methods and types");
         }
@@ -45,22 +47,36 @@ public class HelloWorldAnnotationHandler extends JavacAnnotationHandler<Hello> {
         deleteAnnotationIfNeccessary(annotationNode, Hello.class);
     }
 
-    private void handleMethod(JCAnnotation ast, JavacNode methodNode) {
-        JCTree.JCMethodDecl method = (JCTree.JCMethodDecl) methodNode.get();
+    private void injectHello(JCAnnotation ast, JavacNode methodNode, String recipient) {
 
         // create a tree maker that is positioned at the annotation (mainly for reporting compilation issues)
         JavacTreeMaker maker = methodNode.getTreeMaker().at(ast.pos);
 
-        // Statement that calls <tracer>.startMethod(accessScope, className, methodName, <parameter pair list>)
-        JCTree.JCStatement println = setGeneratedBy(maker.Exec(maker.Apply(
-            List.nil(),
-            maker.Select(chainDotsString(methodNode, "java.lang.System.out"), methodNode.toName("println")),
-            List.of(maker.Literal("Hello World")))),
-            methodNode);
+        JCTree.JCStatement printlnStatement = createPrintlnStatement(maker, methodNode, recipient);
 
-        if (method.body.stats.isEmpty() || !method.body.stats.get(0).equals(println)) {
-            method.body.stats = method.body.stats.prepend(println);
+        JCTree.JCMethodDecl method = (JCTree.JCMethodDecl) methodNode.get();
+        if (method.body.stats.isEmpty() || !method.body.stats.get(0).equals(printlnStatement)) {
+            method.body.stats = method.body.stats.prepend(printlnStatement);
             methodNode.rebuild();
         }
+    }
+
+    private JCTree.JCExpressionStatement createPrintlnStatement(
+        JavacTreeMaker maker, JavacNode methodNode,
+        String recipient
+    ) {
+        return setGeneratedBy(
+            maker.Exec( // new expression
+                maker.Apply( // new method call
+                    List.nil(), // type args
+                    maker.Select( // select the method
+                        chainDotsString(methodNode, "java.lang.System.out"),
+                        methodNode.toName("println")
+                    ),
+                    List.of(maker.Literal("Hello " + recipient)) // method parameters
+                )
+            ),
+            methodNode
+        );
     }
 }
