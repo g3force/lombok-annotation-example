@@ -1,0 +1,57 @@
+plugins {
+    id 'groovy'
+    id 'jacoco'
+}
+
+dependencies {
+    // Have a logger implementation during test execution
+    testRuntimeOnly('org.slf4j:slf4j-simple:1.7.30')
+
+    // Specific groovy version
+    testImplementation 'org.codehaus.groovy:groovy:3.0.7'
+    testRuntimeOnly 'org.codehaus.groovy:groovy-templates:3.0.7'
+    testRuntimeOnly 'org.codehaus.groovy:groovy-xml:3.0.7'
+    testRuntimeOnly 'org.codehaus.groovy:groovy-json:3.0.7'
+
+    // Import Spock versions
+    testImplementation platform("org.spockframework:spock-bom:2.0-M4-groovy-3.0")
+
+    // Spock
+    testImplementation "org.spockframework:spock-core"
+
+
+    // allows mocking of classes (in addition to interfaces)
+    testRuntimeOnly("net.bytebuddy:byte-buddy:1.10.10")
+    // allows mocking of classes without default constructor (together with ByteBuddy or CGLIB)
+    testRuntimeOnly("org.objenesis:objenesis:3.1")
+
+    testRuntimeOnly( 'com.athaydes:spock-reports:2.0.1-RC3' ) {
+        transitive = false // this avoids affecting your version of Groovy/Spock
+    }
+}
+
+test {
+    useJUnitPlatform()
+    reports {
+        junitXml.enabled = true
+        html.enabled = true
+    }
+    /* Enables jenkins build to set status "yellow" when test fails during the build */
+    if (project.hasProperty("ignoreTestFailure")) {
+        ignoreFailures = project.ignoreTestFailure.toBoolean()
+    }
+    // Overwrite platform-specific line separator to avoid comparison issues in tests
+    systemProperty('line.separator', '\n')
+}
+
+jacoco {
+    toolVersion = "0.8.6"
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled = true
+        csv.enabled = false
+        html.enabled = true
+    }
+}

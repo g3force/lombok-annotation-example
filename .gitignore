@@ -1,0 +1,6 @@
+build
+.gradle
+
+#IntelliJ Project files
+.idea/*
+*.iml

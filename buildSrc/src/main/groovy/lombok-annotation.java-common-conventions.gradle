@@ -1,0 +1,17 @@
+plugins {
+    id 'java'
+    id 'ca.cutterslade.analyze'
+}
+
+project.targetCompatibility = JavaVersion.VERSION_11
+project.sourceCompatibility = JavaVersion.VERSION_11
+
+ext.dep_lombok = dependencies.create('org.projectlombok:lombok:1.18.20')
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    withSourcesJar()
+}

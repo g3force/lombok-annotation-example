@@ -1,0 +1,55 @@
+plugins {
+    id 'lombok-annotation.java-common-conventions'
+    id 'lombok-annotation.java-spock-conventions'
+}
+
+configurations {
+    lombok
+}
+
+def unpackedAndRenamedLombokDir = file("$buildDir/lombok")
+
+dependencies {
+    implementation(project(":api"))
+
+    // Lombok API
+    lombok dep_lombok
+
+    // unpacked and unshadowed Lombok classes
+    compileOnly files(unpackedAndRenamedLombokDir)
+
+    // Java-internal classes (for javac)
+    compileOnly files("${System.properties['java.home']}/../lib/tools.jar")
+
+    // Test dependencies
+    testImplementation files(unpackedAndRenamedLombokDir)
+    testImplementation 'com.google.testing.compile:compile-testing:0.18'
+    testImplementation 'commons-io:commons-io:2.8.0'
+    testImplementation 'org.ow2.asm:asm:7.1'
+    testImplementation 'org.ow2.asm:asm-util:7.1'
+}
+
+task extractLombok(type: Sync) {
+    from zipTree(configurations.lombok.singleFile)
+    into unpackedAndRenamedLombokDir
+    include 'lombok/**/*'
+    rename "(.*)[.]SCL[.]lombok", '$1.class'
+}
+
+compileJava.dependsOn(extractLombok)
+
+if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_11)) {
+    compileJava {
+        // Allow accessing javac internal packages
+        options.compilerArgs = [
+            '--add-exports', 'jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+            '--add-exports', 'jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED',
+            '--add-exports', 'jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
+        ]
+    }
+}
+
+javadoc {
+    // Javadoc generation does not work due to invisible modules
+    enabled(false)
+}

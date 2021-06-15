@@ -1,0 +1,22 @@
+plugins {
+    id 'lombok-annotation.java-common-conventions'
+    id 'application'
+}
+
+dependencies {
+    implementation(project(':api'))
+
+    // Lombok
+    compileOnly(dep_lombok)
+    annotationProcessor(dep_lombok)
+
+    // Logging
+    implementation('org.slf4j:slf4j-api:1.7.30')
+    runtimeOnly('org.slf4j:slf4j-simple:1.7.30')
+
+    annotationProcessor(project(':processor'))
+}
+
+application {
+    mainClass.set('de.qaware.lombok.example.Example')
+}

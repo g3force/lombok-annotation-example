@@ -1,0 +1,5 @@
+rootProject.name = 'lombok-annotation'
+
+include 'example'
+include 'processor'
+include 'api'
