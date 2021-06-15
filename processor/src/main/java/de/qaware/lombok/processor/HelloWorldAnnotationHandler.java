@@ -2,6 +2,8 @@ package de.qaware.lombok.processor;
 
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.util.List;
 import de.qaware.lombok.Hello;
 import lombok.core.AST.Kind;
@@ -52,13 +54,13 @@ public class HelloWorldAnnotationHandler extends JavacAnnotationHandler<Hello> {
         // create a tree maker that is positioned at the annotation (mainly for reporting compilation issues)
         JavacTreeMaker maker = methodNode.getTreeMaker().at(ast.pos);
 
-        JCTree.JCStatement printlnStatement = createPrintlnStatement(maker, methodNode, recipient);
+        // create new println statement for the greeting
+        JCStatement printlnStatement = createPrintlnStatement(maker, methodNode, recipient);
 
-        JCTree.JCMethodDecl method = (JCTree.JCMethodDecl) methodNode.get();
-        if (method.body.stats.isEmpty() || !method.body.stats.get(0).equals(printlnStatement)) {
-            method.body.stats = method.body.stats.prepend(printlnStatement);
-            methodNode.rebuild();
-        }
+        // add new statement to the beginning of the method body
+        JCMethodDecl method = (JCMethodDecl) methodNode.get();
+        method.body.stats = method.body.stats.prepend(printlnStatement);
+        methodNode.rebuild();
     }
 
     private JCTree.JCExpressionStatement createPrintlnStatement(
