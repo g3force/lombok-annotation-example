@@ -16,3 +16,7 @@ To run the examples, run: `./gradlew run`
 
 * The Gradle daemon seems to have strange effects on the annotation processor, so it is disabled for this project.
 * IntelliJ uses a Gradle daemon even though it is disabled, so you may need to stop it manually, if you run into errors.
+
+## References
+
+The build process and testing mechanism is largely inspired by https://github.com/sympower/symbok.
